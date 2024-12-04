@@ -1,0 +1,38 @@
+cmake_minimum_required(VERSION 3.10)
+
+# set the project name
+project(prog3)
+
+# 设置C++标准
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+# 立即打印信息 I love Cmake
+# message(${CMAKE_CURRENT_BINARY_DIR})
+# message(${PROJECT_SOURCE_DIR})
+# message(${PROJECT_BINARY_DIR})
+
+# 查询当前目录所有跟文件
+aux_source_directory(. DIR_SRCS)
+
+# ISPC 编译器路径
+find_program(ISPC_EXECUTABLE "E:\\2025codestudy\\CS241Parallel\\ispc-v1.25.3-windows\\bin\\ispc.exe")
+
+# 添加自定义命令 生成ISPC文件
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/mandelbrot_ispc.obj ${PROJECT_SOURCE_DIR}/mandelbrot_ispc.h
+    COMMAND ${ISPC_EXECUTABLE} ${PROJECT_SOURCE_DIR}/mandelbrot.ispc -o ${CMAKE_CURRENT_BINARY_DIR}/mandelbrot_ispc.obj -h ${PROJECT_SOURCE_DIR}/mandelbrot_ispc.h -O3 --target=avx2-i32x8 --arch=x86-64 --opt=disable-fma
+    DEPENDS  ${PROJECT_SOURCE_DIR}/mandelbrot.ispc
+)
+
+# add the executable
+add_executable(prog3 ${DIR_SRCS} mandelbrot_ispc.obj)
+
+# 连接OpenMP库
+find_package(OpenMP REQUIRED)
+target_link_libraries(prog3 OpenMP::OpenMP_C)
+
+# target_link_libraries(prog3 "E:/2025codestudy/CS241Parallel/ispc-v1.25.3-windows/lib/ispcrt.lib")
+# target_link_libraries(prog3 "E:/2025codestudy/CS241Parallel/ispc-v1.25.3-windows/lib/ispcrt_device_cpu.lib")
+# target_link_libraries(prog3 "E:/2025codestudy/CS241Parallel/ispc-v1.25.3-windows/lib/ispcrt_device_gpu.lib")
+# target_link_libraries(prog3 "E:/2025codestudy/CS241Parallel/ispc-v1.25.3-windows/lib/ispcrt_static.lib")
